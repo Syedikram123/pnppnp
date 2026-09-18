@@ -7,10 +7,27 @@ import {
 } from '../firebase';
 import { clearAllLocalData } from './localDb';
 
-// Dedicated API Endpoints
+// Dedicated API Endpoints (deployed as Vercel Serverless Functions on Vercel and middleware in Vite)
 const LOGIN_ENDPOINT = "/api/adminLogin";
 const LOCAL_RESET_ENDPOINT = "/api/verifyLocalReset";
 const CLOUD_RESET_ENDPOINT = "/api/resetStockDatabase";
+
+/**
+ * Helper to safely parse JSON response from server endpoints
+ */
+async function parseJsonResponse(response) {
+  const text = await response.text();
+  let data = {};
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    if (response.status === 404) {
+      throw new Error("Server API endpoint not found (404).");
+    }
+    throw new Error("Invalid server response format.");
+  }
+  return data;
+}
 
 /**
  * Real-time listener for Firebase Auth user state
@@ -21,7 +38,6 @@ export const subscribeAuthState = (onUserChanged) => {
       onUserChanged(user);
     });
   } else {
-    // Check local session marker fallback
     const checkSession = () => {
       const stored = localStorage.getItem('pnp_admin_session');
       onUserChanged(stored === 'true' ? { uid: 'paper-n-print-admin', admin: true } : null);
@@ -34,8 +50,7 @@ export const subscribeAuthState = (onUserChanged) => {
 
 /**
  * Password-Only Admin Login
- * Sends password to secure backend endpoint, server verifies password secret,
- * and mints Firebase Custom Token for frontend authentication.
+ * Sends password to Vercel Serverless API /api/adminLogin for server-side verification
  */
 export const loginWithPassword = async (passwordInput) => {
   if (!passwordInput || !passwordInput.trim()) {
@@ -49,19 +64,17 @@ export const loginWithPassword = async (passwordInput) => {
       body: JSON.stringify({ password: passwordInput.trim() })
     });
 
-    const data = await response.json();
+    const data = await parseJsonResponse(response);
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || 'Incorrect password.');
     }
 
     if (data.customToken && isFirebaseConfigured() && auth) {
-      // Authenticate with Firebase using custom token
       const userCredential = await signInWithCustomToken(auth, data.customToken);
       localStorage.setItem('pnp_admin_session', 'true');
       return userCredential.user;
     } else {
-      // Dev mode session marker
       localStorage.setItem('pnp_admin_session', 'true');
       window.dispatchEvent(new Event('pnp_admin_session_changed'));
       return { uid: 'paper-n-print-admin', admin: true };
@@ -93,7 +106,7 @@ export const logoutUser = async () => {
 
 /**
  * Local Database Hard Reset
- * Verifies reset password strictly on backend server before clearing IndexedDB
+ * Sends reset password to Vercel Serverless API /api/verifyLocalReset for server-side verification before clearing IndexedDB
  */
 export const requestLocalHardReset = async (passwordInput) => {
   if (!passwordInput || !passwordInput.trim()) {
@@ -107,7 +120,7 @@ export const requestLocalHardReset = async (passwordInput) => {
       body: JSON.stringify({ password: passwordInput.trim() })
     });
 
-    const data = await response.json();
+    const data = await parseJsonResponse(response);
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || 'Incorrect reset password.');
@@ -126,7 +139,7 @@ export const requestLocalHardReset = async (passwordInput) => {
 
 /**
  * Firebase Cloud Database Hard Reset
- * Server-side verification of admin authorization and reset password, then clears Firestore
+ * Sends reset password to Vercel Serverless API /api/resetStockDatabase for server-side verification & Firestore cleanup
  */
 export const requestFirebaseHardReset = async (user, passwordInput) => {
   if (!passwordInput || !passwordInput.trim()) {
@@ -148,13 +161,13 @@ export const requestFirebaseHardReset = async (user, passwordInput) => {
       body: JSON.stringify({ password: passwordInput.trim() })
     });
 
-    const data = await response.json();
+    const data = await parseJsonResponse(response);
 
     if (!response.ok || !data.success) {
       throw new Error(data.error || 'Incorrect reset password.');
     }
 
-    // Direct Firestore collection clear using client SDK if function endpoint not deployed yet
+    // Direct Firestore collection clear using client SDK
     const { db, collection, getDocs, deleteDoc, doc } = await import('../firebase');
     if (db) {
       const prodsSnap = await getDocs(collection(db, 'products'));
@@ -167,7 +180,7 @@ export const requestFirebaseHardReset = async (user, passwordInput) => {
       }
     }
 
-    return { success: true, message: 'Firebase database has been reset successfully.' };
+    return { success: true, message: 'Firebase cloud database reset successfully.' };
   } catch (err) {
     console.error("Cloud reset error:", err);
     if (err.message.includes('Incorrect reset password')) {
