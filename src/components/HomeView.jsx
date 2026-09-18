@@ -21,24 +21,7 @@ export default function HomeView({ products, mode, user, onSelectStockCategory, 
   return (
     <div className="space-y-6 pb-6">
       {/* Branding Header Banner */}
-      <div className="bg-navy-900 border border-navy-800 rounded-2xl p-6 text-center flex flex-col items-center shadow-lg">
-        <img 
-          src="/logo123.png" 
-          alt="Paper 'n' Print Logo" 
-          className="w-20 h-20 md:w-24 md:h-24 object-contain mb-3 bg-white/5 p-2 rounded-xl border border-navy-700/50 shadow"
-        />
-        <h2 className="text-2xl md:text-3xl font-extrabold text-white tracking-tight">
-          Paper 'n' Print
-        </h2>
-        <p className="text-sm font-semibold text-blue-400 mt-1 uppercase tracking-wider">
-          {mode === 'firebase' ? 'Firebase Cloud Dashboard' : 'Stock Dashboard'}
-        </p>
-        <p className="text-xs text-slate-400 mt-2 max-w-sm">
-          {mode === 'firebase'
-            ? 'Live real-time inventory connected to Firebase Cloud.'
-            : 'Simple persistent stock management for your business.'}
-        </p>
-      </div>
+      
 
       {notice && (
         <div className="p-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-300 text-sm font-semibold flex items-center justify-between">
@@ -150,30 +133,16 @@ export default function HomeView({ products, mode, user, onSelectStockCategory, 
       {/* 2. LOGGED-IN FIREBASE MODE: Firebase Cloud Hard Reset */}
       {mode === 'firebase' && (
         <div className="bg-rose-950/30 border-2 border-rose-500/40 rounded-2xl p-6 text-slate-200 space-y-3 shadow-xl mt-6">
-          <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/30">
-              <AlertTriangle className="w-6 h-6" />
-            </div>
-            <div>
-              <h3 className="text-base font-black text-rose-300 tracking-tight">
-                DANGER ZONE
-              </h3>
-              <p className="text-xs text-rose-200/70">
-                Reset Firebase cloud stock database
-              </p>
-            </div>
-          </div>
+         
 
-          <p className="text-xs text-slate-300">
-            This will permanently delete all products and transaction records from the Firebase cloud database.
-          </p>
+         
 
           <button
             onClick={() => setShowFirebaseResetModal(true)}
             className="bg-rose-600 hover:bg-rose-500 text-white font-bold text-xs py-3 px-5 rounded-xl shadow-lg transition flex items-center gap-2 mt-2"
           >
             <Trash2 className="w-4 h-4" />
-            [ ⚠ HARD RESET FIREBASE DATA ]
+            [ HARD RESET ALL DATA ]
           </button>
         </div>
       )}

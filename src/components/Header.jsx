@@ -17,7 +17,7 @@ export default function Header({ mode, user, onOpenLogin, onLogout }) {
               Paper 'n' Print
             </h1>
             <p className="text-xs md:text-sm font-medium text-slate-400">
-              {mode === 'firebase' ? 'Firebase Cloud Dashboard' : 'Stock Dashboard'}
+              {mode === 'firebase' ? '' : ''}
             </p>
           </div>
         </div>

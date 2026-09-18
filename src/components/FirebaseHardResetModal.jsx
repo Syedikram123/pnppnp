@@ -38,7 +38,7 @@ export default function FirebaseHardResetModal({ user, onClose, onSuccess }) {
         <div className="flex items-center justify-between border-b border-navy-800 pb-3">
           <div className="flex items-center gap-2 text-rose-400 font-bold text-base">
             <AlertTriangle className="w-5 h-5" />
-            <span>Hard Reset Firebase Data</span>
+            <span>Hard Reset All Data</span>
           </div>
           <button onClick={onClose} className="text-slate-400 hover:text-white">
             <X className="w-5 h-5" />
@@ -114,7 +114,7 @@ export default function FirebaseHardResetModal({ user, onClose, onSuccess }) {
                     Deleting Firebase Data...
                   </>
                 ) : (
-                  'AUTHORIZE & RESET FIREBASE DB'
+                  'RESET'
                 )}
               </button>
             </div>
